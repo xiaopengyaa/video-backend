@@ -18,5 +18,6 @@ jobs:
             cd /www/wwwroot/video-backend # 进入服务器中的端工程所在的目录
             git restore src/* # 还原更改
             git pull # 拉取最新代码
+            pnpm install # 安装项目依赖
             pm2 delete video-backend # 删除旧的进程
             pm2 start src/app.js --name video-backend # 启动新的进程
