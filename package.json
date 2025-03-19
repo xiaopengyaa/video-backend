@@ -1,0 +1,25 @@
+{
+  "name": "video-backend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "server": "set DEBUG=app:* && nodemon src/app.js",
+    "server-pm2": "pm2 start src/app.js --name video-backend"
+  },
+  "dependencies": {
+    "axios": "^1.8.1",
+    "cheerio": "^1.0.0",
+    "crypto-js": "^4.2.0",
+    "dayjs": "^1.11.13",
+    "debug": "^4.4.0",
+    "koa": "^2.16.0",
+    "koa-bodyparser": "^4.4.1",
+    "koa-convert": "^2.0.0",
+    "koa-json": "^2.0.2",
+    "koa-logger": "^3.2.1",
+    "koa-onerror": "^5.0.1",
+    "koa-router": "^13.0.1",
+    "nodemon": "^3.1.9",
+    "qs": "^6.14.0"
+  }
+}

@@ -1,0 +1,22 @@
+name: Auto Deploy # 当前工作流程的名称
+on:
+  push:
+    branches:
+      - main # 只要push到main分支，就会触发该工作流程
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 在服务器端执行相关指令
+      - name: Executing remote ssh commands
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.MY_HOST }} # 服务器IP（需要在GitHub上自行配置对应的secret）
+          username: ${{ secrets.MY_USER }} # 服务器用户名
+          password: ${{ secrets.MY_PASS }} # 服务器密码
+          script: |
+            cd /www/wwwroot/video-backend # 进入服务器中的端工程所在的目录
+            git restore src/* # 还原更改
+            git pull # 拉取最新代码
+            pm2 delete video-backend # 删除旧的进程
+            pm2 start src/app.js --name video-backend # 启动新的进程
