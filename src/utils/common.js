@@ -1,4 +1,5 @@
 const { SITE } = require('./constant')
+const { debugLog, debugError } = require('./debug')
 
 module.exports = {
   addChineseUnit,
@@ -47,6 +48,7 @@ module.exports = {
     }
   },
   getDefaultVid,
+  retry,
 }
 
 /**
@@ -160,4 +162,27 @@ function getDefaultVid(url) {
     }
   })
   return vid
+}
+
+function retry(fn, { maxRetries = 3, retryTitle = '接口' }) {
+  return new Promise((resolve, reject) => {
+    let attempts = 0
+
+    function execute() {
+      fn()
+        .then(resolve)
+        .catch((err) => {
+          debugError(`${retryTitle}错误`, err)
+          attempts++
+          if (attempts <= maxRetries) {
+            debugLog(`${retryTitle}第${attempts}次重试...`)
+            execute()
+          } else {
+            reject(err)
+          }
+        })
+    }
+
+    execute()
+  })
 }

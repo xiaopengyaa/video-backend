@@ -1,62 +1,66 @@
 const cheerio = require('cheerio')
 const api = require('../utils/http')
-const { debugLog, debugError } = require('../utils/debug')
+const { debugLog } = require('../utils/debug')
+const { retry } = require('../utils/common')
 const SITE = 'https://jx.nnxv.cn/'
-const MAX_RETRY = 3
 
 async function qgjx(url) {
   const pageUrl = `${SITE}tv.php`
-  debugLog(`qg页面访问: ${pageUrl}`)
-  const html = await api.get(
-    pageUrl,
-    {
-      url,
-    },
-    {
-      headers: {
-        Referer: SITE,
-      },
-    }
-  )
-  const $ = cheerio.load(html)
-  const src = $('#myiframe').attr('src')
+  const pageMsg = 'qg页面访问'
+  const options = { retryTitle: pageMsg }
+  let src = ''
+  try {
+    src = await retry(async () => {
+      debugLog(`${pageMsg}: ${pageUrl} 视频url: ${url}`)
+      const html = await api.get(
+        pageUrl,
+        { url },
+        { headers: { Referer: SITE } }
+      )
+      const $ = cheerio.load(html)
+      const iframeSrc = $('#myiframe').attr('src')
+      if (iframeSrc) {
+        return iframeSrc
+      } else {
+        throw new Error('iframe的src为空')
+      }
+    }, options)
+  } catch {
+    src = ''
+  }
+
+  if (!src) {
+    return src
+  }
+
   const vurl = await getUrl(SITE + src)
   return vurl
 }
 
-async function getUrl(url, retry = 0) {
-  if (!url) {
-    debugLog('qg接口url为空')
-    return ''
-  }
+async function getUrl(url) {
+  const pageMsg = 'qg接口parse'
+  const options = { retryTitle: pageMsg }
+  let src = ''
   try {
-    debugLog(`qg接口parse: ${url}`)
-    const html = await api.get(url, null, {
-      headers: {
-        Referer: SITE,
-      },
-    })
-    const reg = /var\s+videoUrl\s*=\s*'(.*)';/
-    const match = reg.exec(html)
-    if (match) {
-      return decode(match[1])
-    }
-    return ''
-  } catch (e) {
-    debugError(`qg接口parse错误[${url}]`, e)
-    if (retry < MAX_RETRY) {
-      retry++
-      const data = await _retryRequest()
-      return data
-    }
+    src = await retry(async () => {
+      debugLog(`${pageMsg}: ${url}`)
+      const html = await api.get(url, null, {
+        headers: {
+          Referer: SITE,
+        },
+      })
+      const reg = /var\s+videoUrl\s*=\s*'(.*)';/
+      const match = reg.exec(html)
+      if (match) {
+        return decode(match[1])
+      }
+      return ''
+    }, options)
+  } catch {
+    src = ''
   }
-  return ''
 
-  async function _retryRequest() {
-    debugLog(`qg接口第${retry}次重试: ${url}`)
-    const data = await getUrl(url, retry)
-    return data
-  }
+  return src
 }
 
 function decode(_0x7246d6) {

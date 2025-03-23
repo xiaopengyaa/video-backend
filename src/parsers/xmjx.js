@@ -1,9 +1,9 @@
 const CryptoJS = require('crypto-js')
 const qs = require('qs')
 const api = require('../utils/http')
-const { debugError, debugLog } = require('../utils/debug')
+const { debugLog } = require('../utils/debug')
+const { retry } = require('../utils/common')
 
-const MAX_RETRY = 3
 const hexcase = 0
 const chrsz = 8
 const xmjx = {
@@ -19,42 +19,37 @@ const xmjx = {
     )
     return i1i1i1lI['toString'](CryptoJS['enc']['Utf8'])
   },
-  getUrl: async function (url, retry = 0) {
-    var now = Date.now(),
-      s = sign(hex_md5(now + url))
-    const data = {
-      wap: 0,
-      url: encrypt(url),
-      time: encrypt(now),
-      key: encrypt(s),
-    }
+  getUrl: async function (url) {
+    const pageMsg = 'xm接口parse'
+    const options = { retryTitle: pageMsg }
+    let src = ''
     try {
-      debugLog(`xm接口parse: ${url}`)
-      const res = await api.post(
-        'https://59.153.166.174:4433/xmflv.js',
-        qs.stringify(data)
-      )
-      if (res['code'] === 200) {
-        const url = xmjx['decrypt'](res['url'], res['aes_key'], res['aes_iv'])
-        return url
-      } else {
-        throw new Error(res['msg'] || 'xm接口解析失败')
-      }
-    } catch (e) {
-      debugError(`xm接口parse错误[${url}]`, e)
-      if (retry < MAX_RETRY) {
-        retry++
-        const data = await _retryRequest()
-        return data
-      }
+      src = await retry(async () => {
+        const now = Date.now()
+        const s = sign(hex_md5(now + url))
+        const data = {
+          wap: 0,
+          url: encrypt(url),
+          time: encrypt(now),
+          key: encrypt(s),
+        }
+        debugLog(`${pageMsg}: ${url}`)
+        const res = await api.post(
+          'https://59.153.166.174:4433/xmflv.js',
+          qs.stringify(data)
+        )
+        if (res['code'] === 200) {
+          const url = xmjx['decrypt'](res['url'], res['aes_key'], res['aes_iv'])
+          return url
+        } else {
+          throw new Error(res['msg'] || 'xm接口解析失败')
+        }
+      }, options)
+    } catch {
+      src = ''
     }
-    return ''
 
-    async function _retryRequest() {
-      debugLog(`xm接口第${retry}次重试: ${url}`)
-      const data = await xmjx.getUrl(url, retry)
-      return data
-    }
+    return src
   },
 }
 
