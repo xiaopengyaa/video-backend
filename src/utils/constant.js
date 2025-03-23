@@ -68,8 +68,14 @@ const TYPE = {
   CHILDREN: 106,
 }
 
+const PARSER_TYPE = {
+  qgjx: 'qgjx',
+  xmjx: 'xmjx',
+}
+
 module.exports = {
   SITE,
   SITE_SORT,
   TYPE,
+  PARSER_TYPE,
 }

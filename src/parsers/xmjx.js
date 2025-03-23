@@ -1,12 +1,13 @@
 const CryptoJS = require('crypto-js')
 const qs = require('qs')
-const api = require('./http')
-const { debugError, debugLog } = require('./debug')
+const api = require('../utils/http')
+const { debugError, debugLog } = require('../utils/debug')
 
-var key = 'jsjiami.com.v7'
-var hexcase = 0
-var chrsz = 8
+let key = 'jsjiami.com.v7'
+const hexcase = 0
+const chrsz = 8
 const i1ilIl1 = IlI11IIi
+
 ;((function (i11i11ii, II1iI11i, IiIl, lI1lilil, iilllii, l1IlIIII, iiii11ii) {
   return (
     (i11i11ii = i11i11ii >> 0x6),
@@ -84,95 +85,7 @@ const i1ilIl1 = IlI11IIi
   )
 })(0x32c0, 0x2065b, iI11IIl, 0xcd),
 iI11IIl) && (key = 0xcd)
-let xmflv = {
-  decrypt: function (iliiIiii, ill1lII, iil1IIII) {
-    const iIi1iI1 = IlI11IIi
-    let i1i1i1lI = CryptoJS['AES']['decrypt'](
-      iliiIiii,
-      CryptoJS[iIi1iI1(0x681, '7TTw')][iIi1iI1(0x4d1, 'dXD%')]['parse'](
-        ill1lII
-      ),
-      {
-        iv: CryptoJS['enc'][iIi1iI1(0xef, 'IrqR')]['parse'](iil1IIII),
-        mode: CryptoJS[iIi1iI1(0x21a, 'YUHO')]['CBC'],
-        padding: CryptoJS['pad'][iIi1iI1(0x480, '0qlE')],
-      }
-    )
-    return i1i1i1lI[iIi1iI1(0x219, 'S2Pi')](
-      CryptoJS['enc'][iIi1iI1(0x751, '^0zu')]
-    )
-  },
-  getUrl: async function (url, retry = 0) {
-    const I1Il1i1I = IlI11IIi,
-      l11llIl = {
-        qYWWE: function (lllIIl, lIilI1ll) {
-          return lllIIl(lIilI1ll)
-        },
-        EpvLo: '.bullet-screen',
-        ptZyh: function (iIi111Il, iill1lIl) {
-          return iIi111Il === iill1lIl
-        },
-        cCbCn: I1Il1i1I(0x599, 'G50d'),
-        qvQRn: 'wap',
-        GLEsj: 'next',
-        TcUIf: function (Il1ll1i1, i1IiII1I) {
-          return Il1ll1i1(i1IiII1I)
-        },
-        iVnON: function (II1iiII, IlI1) {
-          return II1iiII + IlI1
-        },
-        jXKuF: function (il11l1, ll1lliIi) {
-          return il11l1(ll1lliIi)
-        },
-      }
-    var ili11II = Date.now(),
-      Il1liiI = l11llIl[I1Il1i1I(0x303, '**7N')](
-        sign,
-        l11llIl[I1Il1i1I(0x88e, 'irmS')](
-          hex_md5,
-          l11llIl[I1Il1i1I(0x348, 'uRzI')](ili11II, url)
-        )
-      )
-    const data = {
-      wap: 0,
-      url: encrypt(url),
-      time: l11llIl[I1Il1i1I(0x5be, 'cd$f')](encrypt, ili11II),
-      key: encrypt(Il1liiI),
-    }
-    try {
-      const IIillilI = await api.post(
-        'https://59.153.166.174:4433/xmflv.js',
-        qs.stringify(data)
-      )
-      const iIl11ill = I1Il1i1I
-      if (IIillilI['code'] === 200) {
-        aes_key = IIillilI[iIl11ill(0x729, 'dqw]')]
-        aes_iv = IIillilI['aes_iv']
-        const url = xmflv['decrypt'](IIillilI['url'], aes_key, aes_iv)
-        return url
-      } else if (retry <= 5) {
-        retry++
-        const data = await _retryRequest()
-        return data
-      } else {
-        return IIillilI
-      }
-    } catch (e) {
-      debugError(`接口请求错误[${url}]`, e)
-      if (retry <= 5) {
-        retry++
-        const data = await _retryRequest()
-        return data
-      }
-    }
 
-    async function _retryRequest() {
-      debugLog(`接口第${retry}次重试: ${url}`)
-      const data = await xmflv.getUrl(url, retry)
-      return data
-    }
-  },
-}
 function IlI11IIi(_0x494df9, _0x29c3f0) {
   const _0x406e46 = iI11IIl()
   return (
@@ -271,6 +184,7 @@ function IlI11IIi(_0x494df9, _0x29c3f0) {
     IlI11IIi(_0x494df9, _0x29c3f0)
   )
 }
+
 function signCoen(illll1i1) {
   const Iii1I1li = i1ilIl1,
     iiiIllI = {
@@ -303,6 +217,7 @@ function signCoen(illll1i1) {
   }
   return lI1li1ii
 }
+
 function encrypt(ill1Il1) {
   const lII1iIi = i1ilIl1,
     Iiliil1I = {
@@ -397,6 +312,7 @@ function encrypt(ill1Il1) {
     Iiliil1I[lII1iIi(0x287, 'NZE9')](encodeURI, lIIlI1I1 + lll1ilil)
   )
 }
+
 function iI11IIl() {
   const iIIlilli = (function () {
     return [
@@ -2575,6 +2491,7 @@ function iI11IIl() {
   }
   return iI11IIl()
 }
+
 function generateRandom13Number() {
   const Ililill1 = i1ilIl1,
     ilillIII = {
@@ -2594,6 +2511,7 @@ function generateRandom13Number() {
     ) + I1lil11
   )
 }
+
 function sign(a) {
   var b = CryptoJS.MD5(a)
   var c = CryptoJS.enc.Utf8.parse(b)
@@ -2609,6 +2527,7 @@ function sign(a) {
 function hex_md5(s) {
   return binl2hex(core_md5(str2binl(s), s.length * chrsz))
 }
+
 function core_md5(x, len) {
   x[len >> 5] |= 0x80 << len % 32
   x[(((len + 64) >>> 9) << 4) + 14] = len
@@ -2692,18 +2611,23 @@ function core_md5(x, len) {
   }
   return Array(a, b, c, d)
 }
+
 function md5_cmn(q, a, b, x, s, t) {
   return safe_add(bit_rol(safe_add(safe_add(a, q), safe_add(x, t)), s), b)
 }
+
 function md5_ff(a, b, c, d, x, s, t) {
   return md5_cmn((b & c) | (~b & d), a, b, x, s, t)
 }
+
 function md5_gg(a, b, c, d, x, s, t) {
   return md5_cmn((b & d) | (c & ~d), a, b, x, s, t)
 }
+
 function md5_hh(a, b, c, d, x, s, t) {
   return md5_cmn(b ^ c ^ d, a, b, x, s, t)
 }
+
 function md5_ii(a, b, c, d, x, s, t) {
   return md5_cmn(c ^ (b | ~d), a, b, x, s, t)
 }
@@ -2712,9 +2636,11 @@ function safe_add(x, y) {
   var msw = (x >> 16) + (y >> 16) + (lsw >> 16)
   return (msw << 16) | (lsw & 0xffff)
 }
+
 function bit_rol(num, cnt) {
   return (num << cnt) | (num >>> (32 - cnt))
 }
+
 function str2binl(str) {
   var bin = Array()
   var mask = (1 << chrsz) - 1
@@ -2722,6 +2648,7 @@ function str2binl(str) {
     bin[i >> 5] |= (str.charCodeAt(i / chrsz) & mask) << i % 32
   return bin
 }
+
 function binl2hex(binarray) {
   var hex_tab = hexcase ? '0123456789ABCDEF' : '0123456789abcdef'
   var str = ''
@@ -2733,6 +2660,96 @@ function binl2hex(binarray) {
   return str
 }
 
+const xmjx = {
+  decrypt: function (iliiIiii, ill1lII, iil1IIII) {
+    const iIi1iI1 = IlI11IIi
+    let i1i1i1lI = CryptoJS['AES']['decrypt'](
+      iliiIiii,
+      CryptoJS[iIi1iI1(0x681, '7TTw')][iIi1iI1(0x4d1, 'dXD%')]['parse'](
+        ill1lII
+      ),
+      {
+        iv: CryptoJS['enc'][iIi1iI1(0xef, 'IrqR')]['parse'](iil1IIII),
+        mode: CryptoJS[iIi1iI1(0x21a, 'YUHO')]['CBC'],
+        padding: CryptoJS['pad'][iIi1iI1(0x480, '0qlE')],
+      }
+    )
+    return i1i1i1lI[iIi1iI1(0x219, 'S2Pi')](
+      CryptoJS['enc'][iIi1iI1(0x751, '^0zu')]
+    )
+  },
+  getUrl: async function (url, retry = 0) {
+    const I1Il1i1I = IlI11IIi,
+      l11llIl = {
+        qYWWE: function (lllIIl, lIilI1ll) {
+          return lllIIl(lIilI1ll)
+        },
+        EpvLo: '.bullet-screen',
+        ptZyh: function (iIi111Il, iill1lIl) {
+          return iIi111Il === iill1lIl
+        },
+        cCbCn: I1Il1i1I(0x599, 'G50d'),
+        qvQRn: 'wap',
+        GLEsj: 'next',
+        TcUIf: function (Il1ll1i1, i1IiII1I) {
+          return Il1ll1i1(i1IiII1I)
+        },
+        iVnON: function (II1iiII, IlI1) {
+          return II1iiII + IlI1
+        },
+        jXKuF: function (il11l1, ll1lliIi) {
+          return il11l1(ll1lliIi)
+        },
+      }
+    var ili11II = Date.now(),
+      Il1liiI = l11llIl[I1Il1i1I(0x303, '**7N')](
+        sign,
+        l11llIl[I1Il1i1I(0x88e, 'irmS')](
+          hex_md5,
+          l11llIl[I1Il1i1I(0x348, 'uRzI')](ili11II, url)
+        )
+      )
+    const data = {
+      wap: 0,
+      url: encrypt(url),
+      time: l11llIl[I1Il1i1I(0x5be, 'cd$f')](encrypt, ili11II),
+      key: encrypt(Il1liiI),
+    }
+    try {
+      const IIillilI = await api.post(
+        'https://59.153.166.174:4433/xmflv.js',
+        qs.stringify(data)
+      )
+      const iIl11ill = I1Il1i1I
+      if (IIillilI['code'] === 200) {
+        aes_key = IIillilI[iIl11ill(0x729, 'dqw]')]
+        aes_iv = IIillilI['aes_iv']
+        const url = xmjx['decrypt'](IIillilI['url'], aes_key, aes_iv)
+        return url
+      } else if (retry <= 5) {
+        retry++
+        const data = await _retryRequest()
+        return data
+      } else {
+        return IIillilI
+      }
+    } catch (e) {
+      debugError(`接口请求错误[${url}]`, e)
+      if (retry <= 5) {
+        retry++
+        const data = await _retryRequest()
+        return data
+      }
+    }
+
+    async function _retryRequest() {
+      debugLog(`接口第${retry}次重试: ${url}`)
+      const data = await xmjx.getUrl(url, retry)
+      return data
+    }
+  },
+}
+
 module.exports = {
-  xmflv,
+  xmjx,
 }
