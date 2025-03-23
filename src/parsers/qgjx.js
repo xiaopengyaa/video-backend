@@ -1,11 +1,17 @@
 const cheerio = require('cheerio')
 const api = require('../utils/http')
+const { debugLog, debugError } = require('../utils/debug')
 const SITE = 'https://jx.nnxv.cn/'
+const MAX_RETRY = 3
 
 async function qgjx(url) {
+  const pageUrl = `${SITE}tv.php`
+  debugLog(`qg页面访问: ${pageUrl}`)
   const html = await api.get(
-    `${SITE}tv.php`,
-    { url },
+    pageUrl,
+    {
+      url,
+    },
     {
       headers: {
         Referer: SITE,
@@ -14,22 +20,43 @@ async function qgjx(url) {
   )
   const $ = cheerio.load(html)
   const src = $('#myiframe').attr('src')
-  const vurl = await getVurl(SITE + src)
+  const vurl = await getUrl(SITE + src)
   return vurl
 }
 
-async function getVurl(url) {
-  const html = await api.get(url, null, {
-    headers: {
-      Referer: SITE,
-    },
-  })
-  const reg = /var\s+videoUrl\s*=\s*'(.*)';/
-  const match = reg.exec(html)
-  if (match) {
-    return decode(match[1])
+async function getUrl(url, retry = 0) {
+  if (!url) {
+    debugLog('qg接口url为空')
+    return ''
+  }
+  try {
+    debugLog(`qg接口parse: ${url}`)
+    const html = await api.get(url, null, {
+      headers: {
+        Referer: SITE,
+      },
+    })
+    const reg = /var\s+videoUrl\s*=\s*'(.*)';/
+    const match = reg.exec(html)
+    if (match) {
+      return decode(match[1])
+    }
+    return ''
+  } catch (e) {
+    debugError(`qg接口parse错误[${url}]`, e)
+    if (retry < MAX_RETRY) {
+      retry++
+      const data = await _retryRequest()
+      return data
+    }
   }
   return ''
+
+  async function _retryRequest() {
+    debugLog(`qg接口第${retry}次重试: ${url}`)
+    const data = await getUrl(url, retry)
+    return data
+  }
 }
 
 function decode(_0x7246d6) {
