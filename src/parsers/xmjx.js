@@ -6,51 +6,51 @@ const { retry } = require('../utils/common')
 
 const hexcase = 0
 const chrsz = 8
-const xmjx = {
-  decrypt: function (iliiIiii, ill1lII, iil1IIII) {
-    let i1i1i1lI = CryptoJS['AES']['decrypt'](
-      iliiIiii,
-      CryptoJS['enc']['Utf8']['parse'](ill1lII),
-      {
-        iv: CryptoJS['enc']['Utf8']['parse'](iil1IIII),
-        mode: CryptoJS['mode']['CBC'],
-        padding: CryptoJS['pad']['Pkcs7'],
-      }
-    )
-    return i1i1i1lI['toString'](CryptoJS['enc']['Utf8'])
-  },
-  getUrl: async function (url) {
-    const pageMsg = 'xm接口parse'
-    const options = { retryTitle: pageMsg }
-    let src = ''
-    try {
-      src = await retry(async () => {
-        const now = Date.now()
-        const s = sign(hex_md5(now + url))
-        const data = {
-          wap: 0,
-          url: encrypt(url),
-          time: encrypt(now),
-          key: encrypt(s),
-        }
-        debugLog(`${pageMsg}: ${url}`)
-        const res = await api.post(
-          'https://59.153.166.174:4433/xmflv.js',
-          qs.stringify(data)
-        )
-        if (res['code'] === 200) {
-          const url = xmjx['decrypt'](res['url'], res['aes_key'], res['aes_iv'])
-          return url
-        } else {
-          throw new Error(res['msg'] || 'xm接口解析失败')
-        }
-      }, options)
-    } catch {
-      src = ''
-    }
 
-    return src
-  },
+async function xmjx(url) {
+  const pageMsg = 'xm接口parse'
+  const options = { retryTitle: pageMsg }
+  let src = ''
+  try {
+    src = await retry(async () => {
+      const now = Date.now()
+      const s = sign(hex_md5(now + url))
+      const data = {
+        wap: 0,
+        url: encrypt(url),
+        time: encrypt(now),
+        key: encrypt(s),
+      }
+      debugLog(`${pageMsg}: ${url}`)
+      const res = await api.post(
+        'https://59.153.166.174:4433/xmflv.js',
+        qs.stringify(data)
+      )
+      if (res['code'] === 200) {
+        const url = decrypt(res['url'], res['aes_key'], res['aes_iv'])
+        return url
+      } else {
+        throw new Error(res['msg'] || 'xm接口解析失败')
+      }
+    }, options)
+  } catch {
+    src = ''
+  }
+
+  return src
+}
+
+function decrypt(iliiIiii, ill1lII, iil1IIII) {
+  let i1i1i1lI = CryptoJS['AES']['decrypt'](
+    iliiIiii,
+    CryptoJS['enc']['Utf8']['parse'](ill1lII),
+    {
+      iv: CryptoJS['enc']['Utf8']['parse'](iil1IIII),
+      mode: CryptoJS['mode']['CBC'],
+      padding: CryptoJS['pad']['Pkcs7'],
+    }
+  )
+  return i1i1i1lI['toString'](CryptoJS['enc']['Utf8'])
 }
 
 function signCoen(illll1i1) {

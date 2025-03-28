@@ -5,7 +5,7 @@ const { jyjx } = require('./jyjx')
 
 function getParser(type) {
   if (type === PARSER_TYPE.xmjx) {
-    return xmjx.getUrl
+    return xmjx
   }
   if (type === PARSER_TYPE.qgjx) {
     return qgjx
@@ -13,7 +13,7 @@ function getParser(type) {
   if (type === PARSER_TYPE.jyjx) {
     return jyjx
   }
-  return xmjx.getUrl
+  return xmjx
 }
 
 module.exports = {
