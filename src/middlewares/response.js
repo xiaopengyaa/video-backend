@@ -4,6 +4,10 @@ async function responseMiddleware(ctx, next) {
     // 执行后续中间件或路由处理
     await next()
 
+    if (ctx.response.headers?.['NO-PARSE'.toLowerCase()] === '1') {
+      return
+    }
+
     // 如果没有其他中间件或路由处理修改了响应状态码，则默认为200
     if (!ctx.response.status) {
       ctx.response.status = 200

@@ -16,12 +16,7 @@ async function jyjx(url) {
       return getUrl(d)
     }, options)
   } catch (e) {
-    console.log(e)
     src = ''
-  }
-
-  if (src) {
-    src = 'https://media.staticfile.link/' + src
   }
 
   return src
@@ -34,7 +29,12 @@ function getUrl($d) {
   if (r['code'] == 200) {
     let $p = r['vkey']
     if (!RegExp(/http/)['test']($p)) {
-      return funcDC(funcH(funcB(KEYS[2]), $p), 2)
+      let u = funcDC(funcH(funcB(KEYS[2]), $p), 2)
+      if (u) {
+        // 代理一下接口，不然请求不到
+        u = '/video/api/proxy/jyjx/' + u
+        return u
+      }
     }
   }
 

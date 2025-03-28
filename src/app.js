@@ -11,6 +11,7 @@ const { responseMiddleware } = require('./middlewares/response')
 const PORT = 3111
 const search = require('./controllers/search')
 const detail = require('./controllers/detail')
+const proxy = require('./controllers/proxy')
 
 // error handler
 onerror(app)
@@ -40,6 +41,7 @@ app.use(async (ctx, next) => {
 // routes
 app.use(search.routes(), search.allowedMethods())
 app.use(detail.routes(), detail.allowedMethods())
+app.use(proxy.routes(), proxy.allowedMethods())
 
 // error-handling
 app.on('error', (err, ctx) => {
