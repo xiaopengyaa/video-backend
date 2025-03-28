@@ -12,6 +12,12 @@
       "skipFiles": ["<node_internals>/**"],
       "type": "node",
       "console": "integratedTerminal"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "node",
+      "program": "${workspaceFolder}/src/parsers/jyjx.js"
     }
   ]
 }

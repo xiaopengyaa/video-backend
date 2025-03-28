@@ -71,6 +71,7 @@ const TYPE = {
 const PARSER_TYPE = {
   qgjx: 'qgjx',
   xmjx: 'xmjx',
+  jyjx: 'jyjx',
 }
 
 module.exports = {
