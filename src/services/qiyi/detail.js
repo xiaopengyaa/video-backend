@@ -1,26 +1,20 @@
-const { getImageUrl, dedupe } = require('../../utils/common')
 const api = require('../../utils/http')
-const { SITE } = require('../../utils/constant')
-const { SUCCESS_CODE, USER_AGENT } = require('./constant')
-const { getSign } = require('./md5')
+const { Mf } = require('./md5')
 
 const homeApi = {
   async getDetail(query) {
     const { url } = query
-    const data = await getData(url)
+    const siteInfo = await getSiteInfo(url)
+    const res = await getData(siteInfo)
     let introduction = {}
     let topList = []
     let videoInfo = {}
-    if (data) {
-      const [baseData, episodeData] = await Promise.all([
-        getBaseInfo(data.albumId),
-        getEpisodeInfo(data.tvId),
-      ])
+    if (res.status_code === 0 && res.data) {
+      const data = res.data
 
-      if (data && episodeData) {
-        introduction = getIntro(baseData, episodeData.base_data)
-        videoInfo = getVideoInfo(data.tvId, episodeData.base_data)
-        topList = getTopList(episodeData.template.pure_data)
+      if (data) {
+        introduction = getIntro(data.base_data)
+        videoInfo = getVideoInfo(data.base_data, siteInfo)
       }
     }
     return {
@@ -31,41 +25,29 @@ const homeApi = {
   },
   async getPlaylist(query) {
     const { url } = query
-    const data = await getData(url)
+    const siteInfo = await getSiteInfo(url)
+    const res = await getData(siteInfo)
     const playList = []
 
-    if (!data) {
-      return playList
-    }
+    if (res.status_code === 0 && res.data) {
+      const data = res.data
 
-    const episodeData = await getEpisodeInfo(data.tvId)
-
-    if (episodeData) {
-      const pureData = episodeData.template.pure_data
-      const firstData = pureData.selector_bk || pureData.source_selector_bk
-      const secondData = pureData.film_feature_bk
-
-      const playData = firstData?.find(
-        (item) => item.entity_id === data.albumId
-      )
-
-      if (playData) {
-        if (playData.video_list_type === 'poster') {
-          playData.videos = transVideos(playData.videos)
+      if (data) {
+        const tabs = data.template.tabs || []
+        const tab = tabs.find((item) => item.tab_id === 'album_tab_1')
+        const block = tab?.blocks?.find((item) => item.bk_id === 'selector_bk')
+        if (!block) {
+          return playList
         }
-        playData.videos.page_keys.forEach((key) => {
-          playData.videos.feature_paged[key].forEach((item) => {
-            const playItem = getPlayItem(item, data.albumId)
-
-            if (playItem) {
-              playList.push(playItem)
-            }
-          })
-        })
-      } else if (secondData) {
-        secondData.videos.forEach((item) => {
-          const playItem = getPlayItem(item, data.albumId)
-
+        const vData = block.data?.data?.find(
+          (item) => item.videos?.feature_paged
+        )
+        if (!vData) {
+          return playList
+        }
+        const videos = getAllVideos(vData.videos)
+        videos.forEach((item) => {
+          const playItem = getPlayItem(item, vData.entity_id?.toString() || '')
           if (playItem) {
             playList.push(playItem)
           }
@@ -77,12 +59,12 @@ const homeApi = {
   },
 }
 
-function getPlayItem(item, albumId) {
+function getPlayItem(item, cid) {
   if (!item.page_url) {
     return
   }
 
-  let mark = ''
+  let mark = null
   let text = item.album_order || item.title
 
   if (item.content_type === 28) {
@@ -90,146 +72,113 @@ function getPlayItem(item, albumId) {
   }
 
   if (item.pay_mark > 0) {
-    mark = '//vfiles.gtimg.cn/vupload/20210322/tag_mini_vip.png'
+    mark = {
+      backgroundColor: '#ffdf89',
+      fontColor: '#663d00',
+      text: 'VIP',
+    }
   } else if (item.content_type === 3) {
-    mark = '//vfiles.gtimg.cn/vupload/20210322/tag_mini_trailerlite.png'
+    mark = {
+      backgroundColor: '#ff650f',
+      fontColor: '#ffffff',
+      text: '预告',
+    }
   }
 
   return {
     vid: item.qipu_id.toString(),
-    cid: albumId.toString(),
+    cid,
     href: item.page_url,
     text: text.toString(),
     mark,
   }
 }
 
-async function getData(url) {
-  const html = await api.get(url, null, {
-    headers: {
-      'User-Agent': USER_AGENT,
-    },
-  })
-  const reg = /window\.Q\.PageInfo\.playPageInfo=(.*?);/
+async function getData(siteInfo) {
+  const url = 'https://mesh.if.iqiyi.com/tvg/v2/lw/base_info'
+  const obj = {
+    entity_id: siteInfo.vid,
+    device_id: '143980fb45f1478bec2f2696fac45401',
+    auth_cookie: '',
+    user_id: '0',
+    vip_type: '-1',
+    vip_status: '0',
+    conduit_id: '',
+    app_version: siteInfo.version,
+    ext: '',
+    app_mode: 'standard',
+    scale: '125',
+    timestamp: +new Date(),
+    src: 'pca_tvg',
+    os: '',
+  }
+  const o = { secret_key: 'howcuteitis' }
+  obj.sign = Mf(obj, o, false, true)
+  const res = await api.get(url, obj)
+  return res
+}
+
+async function getSiteInfo(url) {
+  const html = await api.get(
+    'https://mesh.if.iqiyi.com/player/lw/lwplay/accelerator.js?apiVer=2',
+    null,
+    {
+      headers: {
+        Referer: url,
+      },
+    }
+  )
+  const reg = /window\.QiyiPlayerProphetData\s*=\s*(.*?);\s*if/
   const match = reg.exec(html)
   if (match) {
-    return JSON.parse(match[1])
+    const data = JSON.parse(match[1])
+    return {
+      vid: data?.tvid?.toString() || '',
+      cid: data?.videoInfo?.albumId?.toString() || '',
+      version: data.version,
+    }
   }
 }
 
-function getIntro(mediaInfo, baseData) {
-  const categories =
-    mediaInfo?.categories
-      .filter((item) => item.subType !== 4)
+function getIntro(baseData) {
+  const kinds =
+    baseData?.label
+      ?.filter((item) => item.subType === 3)
       .slice(0, 3)
-      .map((item) => item.name) || []
+      .map((item) => item.txt) || []
   const splitStr = ' '
-  const year = mediaInfo?.publishTime
-    ? new Date(mediaInfo.publishTime).getFullYear().toString()
-    : ''
   return {
-    area: mediaInfo?.areas.join(splitStr) || '',
+    area: '',
     desc: baseData.desc,
-    detailInfo: getRateInfo(baseData),
-    kinds: dedupe(categories).join(splitStr),
+    detailInfo: getDetailInfo(baseData),
+    kinds: kinds.join(splitStr),
     title: baseData.title,
-    update: mediaInfo?.updateStrategy || '',
-    year,
+    update: baseData?.update_info?.update_notification || '',
+    year: baseData.current_video_year || '',
   }
 }
 
-function getTopList(pure_data) {
-  const videos = pure_data.recommend_bk.videos
-  let list = []
-  if (videos?.length) {
-    list = videos.slice(0, 10).map((item) => {
-      let imageInfo = ''
-      if (item.latest_episode_num) {
-        imageInfo = item.is_series_done
-          ? `${item.latest_episode_num}集全`
-          : `更新至${item.latest_episode_num}集`
-      } else if (item.score) {
-        imageInfo = `${item.score}评分`
-      }
-      return {
-        site: SITE.qiyi,
-        cid: item.entity_id.toString(),
-        image: getImageUrl(item.image_url),
-        imageInfo,
-        mark: '',
-        title: item.title,
-        href: item.page_url,
-        sub: [],
-        desc: '',
-        playlist: [],
-        btnlist: [],
-      }
-    })
-  }
-  return list
-}
-
-async function getEpisodeInfo(tvId) {
-  const f = {
-    entity_id: tvId,
-    timestamp: +new Date(),
-    src: 'pcw_tvg',
-    vip_status: 0,
-    vip_type: '',
-    auth_cookie: '',
-    device_id: '8405e9fc31a6290117e65c02741557be',
-    user_id: '',
-    app_version: '3.0.0',
-  }
-  const sign = getSign(f).toUpperCase()
-  f.sign = sign
-
-  const res = await api.get('https://mesh.if.iqiyi.com/tvg/pcw/base_info', f)
-  if (res.status_code === 0) {
-    return res.data
-  }
-}
-
-async function getBaseInfo(albumId) {
-  const res = await api.get(
-    `https://pcw-api.iqiyi.com/album/album/baseinfo/${albumId}`
-  )
-  if (res.code === SUCCESS_CODE) {
-    return res.data
-  }
-}
-
-function getVideoInfo(tvId, item) {
+function getVideoInfo(item, siteInfo) {
   return {
-    vid: tvId.toString(),
+    vid: siteInfo.vid,
     title: item.current_video_title,
   }
 }
 
-function getRateInfo(item) {
+function getDetailInfo(item) {
   const arr = []
-  if (item.score_info.sns_score) {
-    arr.push(`<font color="#FF6022">${item.score_info.sns_score}评分</font>`)
+  if (item.update_info?.update_status) {
+    arr.push(item.update_info.update_status)
   }
-
   if (item.heat) {
-    arr.push(`${item.heat}热度`)
+    arr.push(`<font color="#FF6022">${item.heat}热度</font>`)
   }
 
   return arr.join(' · ')
 }
 
-function transVideos(videos) {
-  const page_keys = []
-  const feature_paged = {}
-  videos.forEach((item) => {
-    page_keys.push(item.title)
-    feature_paged[item.title] = item.data
-  })
-  return {
-    page_keys,
-    feature_paged,
-  }
+function getAllVideos(videos) {
+  return Object.values(videos.feature_paged).flat()
 }
 
 module.exports = homeApi

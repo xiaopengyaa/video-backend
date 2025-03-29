@@ -154,6 +154,10 @@ function getDefaultVid(url) {
       site: SITE.acfun,
       reg: /acfun\.cn.*\/(.*)/,
     },
+    {
+      site: SITE.qiyi,
+      reg: /iqiyi\.com\/(.*)\.html/,
+    },
   ]
   vidReg.forEach((item) => {
     const match = item.reg.exec(url)

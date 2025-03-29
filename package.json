@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "server": "set DEBUG=app:* && nodemon src/app.js",
+    "server": "nodemon src/app.js",
+    "server-debug": "set DEBUG=app:* && nodemon src/app.js",
     "server-ps": "@powershell -Command $env:DEBUG='app:*'; nodemon src/app.js",
     "server-pm2": "DEBUG=app:* pm2 start src/app.js --name video-backend"
   },

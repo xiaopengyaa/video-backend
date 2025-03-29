@@ -1,3 +1,5 @@
+const { debugError } = require('../utils/debug')
+
 // 统一封装响应格式的中间件
 async function responseMiddleware(ctx, next) {
   try {
@@ -33,6 +35,7 @@ async function responseMiddleware(ctx, next) {
       data: null,
       message: error.message || '服务器错误啦',
     }
+    debugError(error)
   }
 }
 

@@ -1,259 +1,275 @@
-const md5 = function (t) {
-  t += ''
-  var e,
-    r,
-    n,
-    o,
-    i,
-    a,
-    u,
-    s,
-    c,
-    l = []
-  for (
-    t = (function (t) {
-      // eslint-disable-next-line no-control-regex
-      t = t.replace(/\x0d\x0a/g, '\n')
-      for (var e = '', r = 0; r < t.length; r++) {
-        var n = t.charCodeAt(r)
-        n < 128
-          ? (e += String.fromCharCode(n))
-          : n > 127 && n < 2048
-          ? ((e += String.fromCharCode((n >> 6) | 192)),
-            (e += String.fromCharCode((63 & n) | 128)))
-          : ((e += String.fromCharCode((n >> 12) | 224)),
-            (e += String.fromCharCode(((n >> 6) & 63) | 128)),
-            (e += String.fromCharCode((63 & n) | 128)))
-      }
+const rr = {
+  rotl: function (t, e) {
+    return (t << e) | (t >>> (32 - e))
+  },
+  rotr: function (t, e) {
+    return (t << (32 - e)) | (t >>> e)
+  },
+  endian: function (t) {
+    if (t.constructor == Number)
+      return (16711935 & rr.rotl(t, 8)) | (4278255360 & rr.rotl(t, 24))
+    for (var e = 0; e < t.length; e++) t[e] = rr.endian(t[e])
+    return t
+  },
+  randomBytes: function (t) {
+    for (var e = []; t > 0; t--) e.push(Math.floor(256 * Math.random()))
+    return e
+  },
+  bytesToWords: function (t) {
+    for (var e = [], r = 0, n = 0; r < t.length; r++, n += 8)
+      e[n >>> 5] |= t[r] << (24 - (n % 32))
+    return e
+  },
+  wordsToBytes: function (t) {
+    for (var e = [], r = 0; r < 32 * t.length; r += 8)
+      e.push((t[r >>> 5] >>> (24 - (r % 32))) & 255)
+    return e
+  },
+  bytesToHex: function (t) {
+    for (var e = [], r = 0; r < t.length; r++)
+      e.push((t[r] >>> 4).toString(16)), e.push((15 & t[r]).toString(16))
+    return e.join('')
+  },
+  hexToBytes: function (t) {
+    for (var e = [], r = 0; r < t.length; r += 2)
+      e.push(parseInt(t.substr(r, 2), 16))
+    return e
+  },
+  bytesToBase64: function (t) {
+    for (var r = [], n = 0; n < t.length; n += 3)
+      for (var i = (t[n] << 16) | (t[n + 1] << 8) | t[n + 2], o = 0; o < 4; o++)
+        8 * n + 6 * o <= 8 * t.length
+          ? r.push(e.charAt((i >>> (6 * (3 - o))) & 63))
+          : r.push('=')
+    return r.join('')
+  },
+  base64ToBytes: function (t) {
+    t = t.replace(/[^A-Z0-9+\/]/gi, '')
+    for (var r = [], n = 0, i = 0; n < t.length; i = ++n % 4)
+      0 != i &&
+        r.push(
+          ((e.indexOf(t.charAt(n - 1)) & (Math.pow(2, -2 * i + 8) - 1)) <<
+            (2 * i)) |
+            (e.indexOf(t.charAt(n)) >>> (6 - 2 * i))
+        )
+    return r
+  },
+}
+
+const ss = {
+  utf8: {
+    stringToBytes: function (t) {
+      return ss.bin.stringToBytes(unescape(encodeURIComponent(t)))
+    },
+    bytesToString: function (t) {
+      return decodeURIComponent(escape(e.bin.bytesToString(t)))
+    },
+  },
+  bin: {
+    stringToBytes: function (t) {
+      for (var e = [], r = 0; r < t.length; r++) e.push(255 & t.charCodeAt(r))
       return e
-    })(t),
-      l = (function (t) {
-        for (
-          var e,
-            r = t.length,
-            n = r + 8,
-            o = 16 * ((n - (n % 64)) / 64 + 1),
-            i = Array(o - 1),
-            a = 0,
-            u = 0;
-          u < r;
+    },
+    bytesToString: function (t) {
+      for (var e = [], r = 0; r < t.length; r++)
+        e.push(String.fromCharCode(t[r]))
+      return e.join('')
+    },
+  },
+}
 
-        )
-          (a = (u % 4) * 8),
-            (i[(e = (u - (u % 4)) / 4)] = i[e] | (t.charCodeAt(u) << a)),
-            u++
+function i(t) {
+  return (
+    null != t &&
+    (e(t) ||
+      (function (t) {
         return (
-          (a = (u % 4) * 8),
-          (i[(e = (u - (u % 4)) / 4)] = i[e] | (128 << a)),
-          (i[o - 2] = r << 3),
-          (i[o - 1] = r >>> 29),
-          i
+          'function' === typeof t.readFloatLE &&
+          'function' === typeof t.slice &&
+          e(t.slice(0, 0))
         )
-      })(t),
-      a = 1732584193,
-      u = 4023233417,
-      s = 2562383102,
-      c = 271733878,
-      e = 0;
-    e < l.length;
-    e += 16
-  )
-    (r = a),
-      (n = u),
-      (o = s),
-      (i = c),
-      (a = w(a, u, s, c, l[e + 0], 7, 3614090360)),
-      (c = w(c, a, u, s, l[e + 1], 12, 3905402710)),
-      (s = w(s, c, a, u, l[e + 2], 17, 606105819)),
-      (u = w(u, s, c, a, l[e + 3], 22, 3250441966)),
-      (a = w(a, u, s, c, l[e + 4], 7, 4118548399)),
-      (c = w(c, a, u, s, l[e + 5], 12, 1200080426)),
-      (s = w(s, c, a, u, l[e + 6], 17, 2821735955)),
-      (u = w(u, s, c, a, l[e + 7], 22, 4249261313)),
-      (a = w(a, u, s, c, l[e + 8], 7, 1770035416)),
-      (c = w(c, a, u, s, l[e + 9], 12, 2336552879)),
-      (s = w(s, c, a, u, l[e + 10], 17, 4294925233)),
-      (u = w(u, s, c, a, l[e + 11], 22, 2304563134)),
-      (a = w(a, u, s, c, l[e + 12], 7, 1804603682)),
-      (c = w(c, a, u, s, l[e + 13], 12, 4254626195)),
-      (s = w(s, c, a, u, l[e + 14], 17, 2792965006)),
-      (u = w(u, s, c, a, l[e + 15], 22, 1236535329)),
-      (a = x(a, u, s, c, l[e + 1], 5, 4129170786)),
-      (c = x(c, a, u, s, l[e + 6], 9, 3225465664)),
-      (s = x(s, c, a, u, l[e + 11], 14, 643717713)),
-      (u = x(u, s, c, a, l[e + 0], 20, 3921069994)),
-      (a = x(a, u, s, c, l[e + 5], 5, 3593408605)),
-      (c = x(c, a, u, s, l[e + 10], 9, 38016083)),
-      (s = x(s, c, a, u, l[e + 15], 14, 3634488961)),
-      (u = x(u, s, c, a, l[e + 4], 20, 3889429448)),
-      (a = x(a, u, s, c, l[e + 9], 5, 568446438)),
-      (c = x(c, a, u, s, l[e + 14], 9, 3275163606)),
-      (s = x(s, c, a, u, l[e + 3], 14, 4107603335)),
-      (u = x(u, s, c, a, l[e + 8], 20, 1163531501)),
-      (a = x(a, u, s, c, l[e + 13], 5, 2850285829)),
-      (c = x(c, a, u, s, l[e + 2], 9, 4243563512)),
-      (s = x(s, c, a, u, l[e + 7], 14, 1735328473)),
-      (u = x(u, s, c, a, l[e + 12], 20, 2368359562)),
-      (a = E(a, u, s, c, l[e + 5], 4, 4294588738)),
-      (c = E(c, a, u, s, l[e + 8], 11, 2272392833)),
-      (s = E(s, c, a, u, l[e + 11], 16, 1839030562)),
-      (u = E(u, s, c, a, l[e + 14], 23, 4259657740)),
-      (a = E(a, u, s, c, l[e + 1], 4, 2763975236)),
-      (c = E(c, a, u, s, l[e + 4], 11, 1272893353)),
-      (s = E(s, c, a, u, l[e + 7], 16, 4139469664)),
-      (u = E(u, s, c, a, l[e + 10], 23, 3200236656)),
-      (a = E(a, u, s, c, l[e + 13], 4, 681279174)),
-      (c = E(c, a, u, s, l[e + 0], 11, 3936430074)),
-      (s = E(s, c, a, u, l[e + 3], 16, 3572445317)),
-      (u = E(u, s, c, a, l[e + 6], 23, 76029189)),
-      (a = E(a, u, s, c, l[e + 9], 4, 3654602809)),
-      (c = E(c, a, u, s, l[e + 12], 11, 3873151461)),
-      (s = E(s, c, a, u, l[e + 15], 16, 530742520)),
-      (u = E(u, s, c, a, l[e + 2], 23, 3299628645)),
-      (a = S(a, u, s, c, l[e + 0], 6, 4096336452)),
-      (c = S(c, a, u, s, l[e + 7], 10, 1126891415)),
-      (s = S(s, c, a, u, l[e + 14], 15, 2878612391)),
-      (u = S(u, s, c, a, l[e + 5], 21, 4237533241)),
-      (a = S(a, u, s, c, l[e + 12], 6, 1700485571)),
-      (c = S(c, a, u, s, l[e + 3], 10, 2399980690)),
-      (s = S(s, c, a, u, l[e + 10], 15, 4293915773)),
-      (u = S(u, s, c, a, l[e + 1], 21, 2240044497)),
-      (a = S(a, u, s, c, l[e + 8], 6, 1873313359)),
-      (c = S(c, a, u, s, l[e + 15], 10, 4264355552)),
-      (s = S(s, c, a, u, l[e + 6], 15, 2734768916)),
-      (u = S(u, s, c, a, l[e + 13], 21, 1309151649)),
-      (a = S(a, u, s, c, l[e + 4], 6, 4149444226)),
-      (c = S(c, a, u, s, l[e + 11], 10, 3174756917)),
-      (s = S(s, c, a, u, l[e + 2], 15, 718787259)),
-      (u = S(u, s, c, a, l[e + 9], 21, 3951481745)),
-      (a = p(a, r)),
-      (u = p(u, n)),
-      (s = p(s, o)),
-      (c = p(c, i))
-  return (b(a) + b(u) + b(s) + b(c)).toLowerCase()
-}
-
-const getSign = function () {
-  var t = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : {},
-    e = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : {},
-    n = e.splitKey,
-    r = void 0 === n ? '&' : n,
-    o = e.secretKey,
-    c = void 0 === o ? 'howcuteitis' : o,
-    l = e.key,
-    d = void 0 === l ? 'secret_key' : l,
-    h = Object.keys(t).sort(),
-    v = h.map(function (e) {
-      return ''.concat(e, '=').concat(t[e])
-    })
-  return v.push(''.concat(d, '=').concat(c)), md5(v.join(r))
-}
-
-function w(t, e, r, n, o, i, a) {
-  return (
-    (t = p(
-      t,
-      p(
-        p(
-          (function (t, e, r) {
-            return (t & e) | (~t & r)
-          })(e, r, n),
-          o
-        ),
-        a
-      )
-    )),
-    p(v(t, i), e)
+      })(t) ||
+      !!t._isBuffer)
   )
 }
 
-function p(t, e) {
-  var r, n, o, i, a
-  return (
-    (o = 2147483648 & t),
-    (i = 2147483648 & e),
-    (a = (1073741823 & t) + (1073741823 & e)),
-    (r = 1073741824 & t) & (n = 1073741824 & e)
-      ? 2147483648 ^ a ^ o ^ i
-      : r | n
-      ? 1073741824 & a
-        ? 3221225472 ^ a ^ o ^ i
-        : 1073741824 ^ a ^ o ^ i
-      : a ^ o ^ i
+function a(t, r) {
+  var n = ss.utf8
+  var o = ss.bin
+  var e = rr
+  t.constructor == String
+    ? (t =
+        r && 'binary' === r.encoding ? o.stringToBytes(t) : n.stringToBytes(t))
+    : i(t)
+    ? (t = Array.prototype.slice.call(t, 0))
+    : Array.isArray(t) || t.constructor === Uint8Array || (t = t.toString())
+  for (
+    var s = e.bytesToWords(t),
+      l = 8 * t.length,
+      u = 1732584193,
+      c = -271733879,
+      h = -1732584194,
+      p = 271733878,
+      f = 0;
+    f < s.length;
+    f++
   )
+    s[f] =
+      (16711935 & ((s[f] << 8) | (s[f] >>> 24))) |
+      (4278255360 & ((s[f] << 24) | (s[f] >>> 8)))
+  ;(s[l >>> 5] |= 128 << l % 32), (s[14 + (((l + 64) >>> 9) << 4)] = l)
+  var d = a._ff,
+    g = a._gg,
+    x = a._hh,
+    m = a._ii
+  for (f = 0; f < s.length; f += 16) {
+    var v = u,
+      y = c,
+      b = h,
+      _ = p
+    ;(u = d(u, c, h, p, s[f + 0], 7, -680876936)),
+      (p = d(p, u, c, h, s[f + 1], 12, -389564586)),
+      (h = d(h, p, u, c, s[f + 2], 17, 606105819)),
+      (c = d(c, h, p, u, s[f + 3], 22, -1044525330)),
+      (u = d(u, c, h, p, s[f + 4], 7, -176418897)),
+      (p = d(p, u, c, h, s[f + 5], 12, 1200080426)),
+      (h = d(h, p, u, c, s[f + 6], 17, -1473231341)),
+      (c = d(c, h, p, u, s[f + 7], 22, -45705983)),
+      (u = d(u, c, h, p, s[f + 8], 7, 1770035416)),
+      (p = d(p, u, c, h, s[f + 9], 12, -1958414417)),
+      (h = d(h, p, u, c, s[f + 10], 17, -42063)),
+      (c = d(c, h, p, u, s[f + 11], 22, -1990404162)),
+      (u = d(u, c, h, p, s[f + 12], 7, 1804603682)),
+      (p = d(p, u, c, h, s[f + 13], 12, -40341101)),
+      (h = d(h, p, u, c, s[f + 14], 17, -1502002290)),
+      (u = g(
+        u,
+        (c = d(c, h, p, u, s[f + 15], 22, 1236535329)),
+        h,
+        p,
+        s[f + 1],
+        5,
+        -165796510
+      )),
+      (p = g(p, u, c, h, s[f + 6], 9, -1069501632)),
+      (h = g(h, p, u, c, s[f + 11], 14, 643717713)),
+      (c = g(c, h, p, u, s[f + 0], 20, -373897302)),
+      (u = g(u, c, h, p, s[f + 5], 5, -701558691)),
+      (p = g(p, u, c, h, s[f + 10], 9, 38016083)),
+      (h = g(h, p, u, c, s[f + 15], 14, -660478335)),
+      (c = g(c, h, p, u, s[f + 4], 20, -405537848)),
+      (u = g(u, c, h, p, s[f + 9], 5, 568446438)),
+      (p = g(p, u, c, h, s[f + 14], 9, -1019803690)),
+      (h = g(h, p, u, c, s[f + 3], 14, -187363961)),
+      (c = g(c, h, p, u, s[f + 8], 20, 1163531501)),
+      (u = g(u, c, h, p, s[f + 13], 5, -1444681467)),
+      (p = g(p, u, c, h, s[f + 2], 9, -51403784)),
+      (h = g(h, p, u, c, s[f + 7], 14, 1735328473)),
+      (u = x(
+        u,
+        (c = g(c, h, p, u, s[f + 12], 20, -1926607734)),
+        h,
+        p,
+        s[f + 5],
+        4,
+        -378558
+      )),
+      (p = x(p, u, c, h, s[f + 8], 11, -2022574463)),
+      (h = x(h, p, u, c, s[f + 11], 16, 1839030562)),
+      (c = x(c, h, p, u, s[f + 14], 23, -35309556)),
+      (u = x(u, c, h, p, s[f + 1], 4, -1530992060)),
+      (p = x(p, u, c, h, s[f + 4], 11, 1272893353)),
+      (h = x(h, p, u, c, s[f + 7], 16, -155497632)),
+      (c = x(c, h, p, u, s[f + 10], 23, -1094730640)),
+      (u = x(u, c, h, p, s[f + 13], 4, 681279174)),
+      (p = x(p, u, c, h, s[f + 0], 11, -358537222)),
+      (h = x(h, p, u, c, s[f + 3], 16, -722521979)),
+      (c = x(c, h, p, u, s[f + 6], 23, 76029189)),
+      (u = x(u, c, h, p, s[f + 9], 4, -640364487)),
+      (p = x(p, u, c, h, s[f + 12], 11, -421815835)),
+      (h = x(h, p, u, c, s[f + 15], 16, 530742520)),
+      (u = m(
+        u,
+        (c = x(c, h, p, u, s[f + 2], 23, -995338651)),
+        h,
+        p,
+        s[f + 0],
+        6,
+        -198630844
+      )),
+      (p = m(p, u, c, h, s[f + 7], 10, 1126891415)),
+      (h = m(h, p, u, c, s[f + 14], 15, -1416354905)),
+      (c = m(c, h, p, u, s[f + 5], 21, -57434055)),
+      (u = m(u, c, h, p, s[f + 12], 6, 1700485571)),
+      (p = m(p, u, c, h, s[f + 3], 10, -1894986606)),
+      (h = m(h, p, u, c, s[f + 10], 15, -1051523)),
+      (c = m(c, h, p, u, s[f + 1], 21, -2054922799)),
+      (u = m(u, c, h, p, s[f + 8], 6, 1873313359)),
+      (p = m(p, u, c, h, s[f + 15], 10, -30611744)),
+      (h = m(h, p, u, c, s[f + 6], 15, -1560198380)),
+      (c = m(c, h, p, u, s[f + 13], 21, 1309151649)),
+      (u = m(u, c, h, p, s[f + 4], 6, -145523070)),
+      (p = m(p, u, c, h, s[f + 11], 10, -1120210379)),
+      (h = m(h, p, u, c, s[f + 2], 15, 718787259)),
+      (c = m(c, h, p, u, s[f + 9], 21, -343485551)),
+      (u = (u + v) >>> 0),
+      (c = (c + y) >>> 0),
+      (h = (h + b) >>> 0),
+      (p = (p + _) >>> 0)
+  }
+  return e.endian([u, c, h, p])
+}
+a._ff = function (t, e, r, n, i, o, a) {
+  var s = t + ((e & r) | (~e & n)) + (i >>> 0) + a
+  return ((s << o) | (s >>> (32 - o))) + e
 }
 
-function x(t, e, r, n, o, i, a) {
-  return (
-    (t = p(
-      t,
-      p(
-        p(
-          (function (t, e, r) {
-            return (t & r) | (e & ~r)
-          })(e, r, n),
-          o
-        ),
-        a
-      )
-    )),
-    p(v(t, i), e)
-  )
+a._gg = function (t, e, r, n, i, o, a) {
+  var s = t + ((e & n) | (r & ~n)) + (i >>> 0) + a
+  return ((s << o) | (s >>> (32 - o))) + e
 }
 
-function E(t, e, r, n, o, i, a) {
-  return (
-    (t = p(
-      t,
-      p(
-        p(
-          (function (t, e, r) {
-            return t ^ e ^ r
-          })(e, r, n),
-          o
-        ),
-        a
-      )
-    )),
-    p(v(t, i), e)
-  )
+a._hh = function (t, e, r, n, i, o, a) {
+  var s = t + (e ^ r ^ n) + (i >>> 0) + a
+  return ((s << o) | (s >>> (32 - o))) + e
 }
 
-function S(t, e, r, n, o, i, a) {
-  return (
-    (t = p(
-      t,
-      p(
-        p(
-          (function (t, e, r) {
-            return e ^ (t | ~r)
-          })(e, r, n),
-          o
-        ),
-        a
-      )
-    )),
-    p(v(t, i), e)
-  )
+a._ii = function (t, e, r, n, i, o, a) {
+  var s = t + (r ^ (e | ~n)) + (i >>> 0) + a
+  return ((s << o) | (s >>> (32 - o))) + e
 }
 
-function b(t) {
-  var e,
-    r = '',
-    n = ''
-  for (e = 0; e <= 3; e++)
-    r += (n = '0' + ((t >>> (8 * e)) & 255).toString(16)).substr(
-      n.length - 2,
-      2
-    )
-  return r
+a._blocksize = 16
+a._digestsize = 16
+
+function Mf(e, t, i, o) {
+  const n = ((e, t, i) => {
+    const o = Object.keys(e)
+    o.sort()
+    let n = ''
+    for (let l = 0; l < o.length; l++) {
+      const t = o[l]
+      n += (l > 0 ? '&' : '') + t + '=' + (i ? e[t] : encodeURIComponent(e[t]))
+    }
+    if (t)
+      if ('string' === typeof t) n += t
+      else {
+        n += '&'
+        for (const e of Object.keys(t)) n += `${e}=${t[e]}`
+      }
+    return n
+  })(e, t, o)
+  return i ? U(n).toLowerCase() : U(n).toUpperCase()
 }
 
-function v(t, e) {
-  return (t << e) | (t >>> (32 - e))
+function U(t, r) {
+  if (void 0 === t || null === t) throw new Error('Illegal argument ' + t)
+  var n = rr.wordsToBytes(a(t, r))
+  return r && r.asBytes
+    ? n
+    : r && r.asString
+    ? ss.bin.bytesToString(n)
+    : rr.bytesToHex(n)
 }
 
-module.exports = {
-  md5,
-  getSign,
-}
+module.exports = { Mf }

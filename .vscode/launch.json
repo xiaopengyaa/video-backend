@@ -5,9 +5,9 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Launch via NPM",
+      "name": "nodemon",
       "request": "launch",
-      "runtimeArgs": ["run-script", "server"],
+      "runtimeArgs": ["run-script", "server-debug"],
       "runtimeExecutable": "npm",
       "skipFiles": ["<node_internals>/**"],
       "type": "node",

@@ -1,4 +1,5 @@
 const axios = require('axios')
+const { debugError } = require('../utils/debug')
 
 // 封装api
 const api = {
@@ -12,6 +13,7 @@ const api = {
         resolve(res.data)
       })
     } catch (err) {
+      debugError(err)
       throw new Error(err)
     }
   },
@@ -22,6 +24,7 @@ const api = {
         resolve(res.data)
       })
     } catch (err) {
+      debugError(err)
       throw new Error(err)
     }
   },

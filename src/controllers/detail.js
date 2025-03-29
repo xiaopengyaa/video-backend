@@ -13,7 +13,7 @@ const apiMap = {
   [SITE.qq]: qqApi,
   [SITE.hunantv]: hunantvApi,
   // [SITE.bilibili]: bilibiliApi,
-  // [SITE.qiyi]: qiyiApi,
+  [SITE.qiyi]: qiyiApi,
 }
 
 router.prefix('/video/api/detail')
