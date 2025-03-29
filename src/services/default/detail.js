@@ -1,4 +1,4 @@
-const { getResult, restoreHtmlText } = require('../../utils/common')
+const { restoreHtmlText } = require('../../utils/common')
 const qqApi = require('../qq/search')
 
 const homeApi = {
@@ -39,35 +39,26 @@ const homeApi = {
 
 async function getIntro(item) {
   return {
-    area_name: '',
-    cover_description: item.desc,
-    detail_info: item.sub.join(' · '),
-    episode_all: '',
-    hotval: '',
-    main_genres: '',
+    area: '',
+    desc: item.desc,
+    detailInfo: item.sub.join(' · '),
+    kinds: '',
     title: restoreHtmlText(item.title),
-    update_notify_desc: '',
+    update: '',
     year: '',
   }
 }
 
 function getVideoInfo(item, url) {
   const videoInfo = {
-    c_covers: '',
-    c_title_output: '',
-    pioneer_tag: '',
-    title: restoreHtmlText(item.title),
-    type: -1,
-    type_name: '',
     vid: '',
+    title: restoreHtmlText(item.title),
   }
   const playItem = item.playlist.find((data) => {
     return data.href === url
   })
 
   if (playItem) {
-    videoInfo.c_covers = playItem.cid
-    videoInfo.c_title_output = playItem.text
     videoInfo.vid = playItem.vid
   }
 

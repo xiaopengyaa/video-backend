@@ -1,4 +1,4 @@
-const { getResult, addChineseUnit, getImageUrl } = require('../../utils/common')
+const { addChineseUnit, getImageUrl } = require('../../utils/common')
 const api = require('../../utils/http')
 const { SITE } = require('../../utils/constant')
 
@@ -12,7 +12,7 @@ const homeApi = {
     if (data) {
       const seasonId = data.mediaInfo.season_id.toString()
       introduction = await getIntro(data.mediaInfo)
-      videoInfo = getVideoInfo(data.epInfo, seasonId)
+      videoInfo = getVideoInfo(data.epInfo)
       topList = await getTopList(seasonId)
     }
     return {
@@ -58,14 +58,12 @@ async function getData(url) {
 
 async function getIntro(mediaInfo) {
   return {
-    area_name: mediaInfo.areas[0]?.name || '',
-    cover_description: mediaInfo.evaluate,
-    detail_info: await getRateInfo(mediaInfo),
-    episode_all: mediaInfo.total.toString(),
-    hotval: '',
-    main_genres: mediaInfo.ssTypeFormat.name,
+    area: mediaInfo.areas[0]?.name || '',
+    desc: mediaInfo.evaluate,
+    detailInfo: await getRateInfo(mediaInfo),
+    kinds: mediaInfo.ssTypeFormat.name,
     title: mediaInfo.season_title,
-    update_notify_desc: mediaInfo.new_ep.desc,
+    update: mediaInfo.new_ep.desc,
     year: '',
   }
 }
@@ -95,15 +93,10 @@ async function getTopList(seasonId) {
   return list
 }
 
-function getVideoInfo(epInfo, seasonId) {
+function getVideoInfo(epInfo) {
   return {
-    c_covers: seasonId,
-    c_title_output: epInfo.title,
-    pioneer_tag: '',
-    title: epInfo.share_copy,
-    type: -1,
-    type_name: '',
     vid: epInfo.id.toString(),
+    title: epInfo.share_copy,
   }
 }
 

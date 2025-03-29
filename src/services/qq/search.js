@@ -1,4 +1,4 @@
-const { getResult, getSiteByUrl, processUrl } = require('../../utils/common')
+const { processUrl } = require('../../utils/common')
 const api = require('../../utils/http')
 const { COOKIE, REFERER } = require('./constant')
 const { generateUuid } = require('../../utils/searchUtil')

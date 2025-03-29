@@ -1,4 +1,4 @@
-const { getResult, getImageUrl, dedupe } = require('../../utils/common')
+const { getImageUrl, dedupe } = require('../../utils/common')
 const api = require('../../utils/http')
 const { SITE } = require('../../utils/constant')
 const { SUCCESS_CODE, USER_AGENT } = require('./constant')
@@ -128,14 +128,12 @@ function getIntro(mediaInfo, baseData) {
     ? new Date(mediaInfo.publishTime).getFullYear().toString()
     : ''
   return {
-    area_name: mediaInfo?.areas.join(splitStr) || '',
-    cover_description: baseData.desc,
-    detail_info: getRateInfo(baseData),
-    episode_all: mediaInfo?.videoCount.toString() || '',
-    hotval: '',
-    main_genres: dedupe(categories).join(splitStr),
+    area: mediaInfo?.areas.join(splitStr) || '',
+    desc: baseData.desc,
+    detailInfo: getRateInfo(baseData),
+    kinds: dedupe(categories).join(splitStr),
     title: baseData.title,
-    update_notify_desc: mediaInfo?.updateStrategy || '',
+    update: mediaInfo?.updateStrategy || '',
     year,
   }
 }
@@ -203,13 +201,8 @@ async function getBaseInfo(albumId) {
 
 function getVideoInfo(tvId, item) {
   return {
-    c_covers: item.qipu_id.toString(),
-    c_title_output: item.current_video_title,
-    pioneer_tag: '',
-    title: item.current_video_title,
-    type: -1,
-    type_name: '',
     vid: tvId.toString(),
+    title: item.current_video_title,
   }
 }
 

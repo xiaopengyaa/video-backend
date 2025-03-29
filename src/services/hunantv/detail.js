@@ -1,4 +1,4 @@
-const { getResult, getDefaultVid } = require('../../utils/common')
+const { getDefaultVid } = require('../../utils/common')
 const api = require('../../utils/http')
 const { SITE } = require('../../utils/constant')
 
@@ -90,14 +90,12 @@ async function getData(url) {
 function getIntro(videoInfo) {
   const detail = videoInfo?.detail
   return {
-    area_name: detail.area,
-    cover_description: detail.story,
-    detail_info: detail.updateInfo,
-    episode_all: '',
-    hotval: detail.playCnt,
-    main_genres: detail.kind,
+    area: detail.area,
+    desc: detail.story,
+    detailInfo: detail.updateInfo,
+    kinds: detail.kind,
     title: videoInfo.clipName,
-    update_notify_desc: '',
+    update: '',
     year: '',
   }
 }
@@ -132,13 +130,8 @@ async function getTopList(vid) {
 
 function getVideoInfo(videoInfo) {
   return {
-    c_covers: videoInfo.cid,
-    c_title_output: videoInfo.videoName,
-    pioneer_tag: '',
-    title: videoInfo.videoName,
-    type: -1,
-    type_name: videoInfo.chn,
     vid: videoInfo.vid,
+    title: videoInfo.videoName,
   }
 }
 

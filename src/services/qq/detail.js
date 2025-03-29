@@ -14,9 +14,9 @@ const homeApi = {
     let tabs = []
     if (match) {
       const data = eval(`(${match[1]})`)
-      introduction = data.introduction.introData.list[0].item_params
+      introduction = getIntro(data.introduction.introData.list[0].item_params)
       topList = processTopList(data.topList.data)
-      videoInfo = data.global.videoInfo
+      videoInfo = getVideoInfo(data.global.videoInfo)
       tabs = data.episodeMain.listData[data.episodeMain.currentEpTabIndex].tabs
     }
     return {
@@ -105,6 +105,25 @@ async function getList(cid, page_context) {
       res.data.module_list_datas[0].module_datas[0].item_data_lists.item_datas
   }
   return list
+}
+
+function getIntro(item) {
+  return {
+    area: item.area_name,
+    desc: item.cover_description,
+    detailInfo: item.detail_info,
+    kinds: item.main_genres,
+    title: item.title,
+    update: item.update_notify_desc,
+    year: item.year,
+  }
+}
+
+function getVideoInfo(item) {
+  return {
+    vid: item.vid,
+    title: item.title,
+  }
 }
 
 function processTopList(list) {
