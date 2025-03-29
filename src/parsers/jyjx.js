@@ -1,6 +1,7 @@
 const CryptoJS = require('crypto-js')
 const qs = require('qs')
 const cheerio = require('cheerio')
+const axios = require('axios')
 const api = require('../utils/http')
 const { debugLog } = require('../utils/debug')
 const { retry } = require('../utils/common')
@@ -13,7 +14,7 @@ async function jyjx(url) {
   try {
     src = await retry(async () => {
       const d = await getEncryptData(url)
-      return getUrl(d)
+      return getRUrl(getUrl(d))
     }, options)
   } catch (e) {
     src = ''
@@ -22,7 +23,21 @@ async function jyjx(url) {
   return src
 }
 
+async function getRUrl(u) {
+  debugLog(`jy接口获取重定向url: ${u}`)
+  const res = await axios.get(u, {
+    maxRedirects: 0,
+    validateStatus: (status) => status >= 200 && status < 400,
+  })
+  if (res.status === 302) {
+    debugLog(`jy接口获取重定向url成功: ${res.headers.location}`)
+    return res.headers.location
+  }
+  return u
+}
+
 function getUrl($d) {
+  debugLog(`jy接口解析url: ${$d}`)
   let $k = CryptoJS.MD5('llqplayerparsedata').toString()
   let r = JSON.parse(decrypt($d, funcS($k), funcSS($k)))
 
@@ -31,8 +46,7 @@ function getUrl($d) {
     if (!RegExp(/http/)['test']($p)) {
       let u = funcDC(funcH(funcB(KEYS[2]), $p), 2)
       if (u) {
-        // 代理一下接口，不然请求不到
-        u = '/video/api/proxy/jyjx/' + u
+        u = 'https://media.staticfile.link/' + u
         return u
       }
     }
